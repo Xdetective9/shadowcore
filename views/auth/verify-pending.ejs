@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Your Email | ShadowCore</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+    <style>
+        .verify-container {
+            max-width: 500px;
+            margin: 4rem auto;
+            padding: 3rem;
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            text-align: center;
+            backdrop-filter: blur(20px);
+        }
+        
+        .verify-icon {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        .verify-title {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+        
+        .verify-message {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+        
+        .email-display {
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: var(--radius);
+            padding: 1rem;
+            margin: 1.5rem 0;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+        
+        .instructions {
+            text-align: left;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .instructions ol {
+            padding-left: 1.5rem;
+            margin: 0;
+        }
+        
+        .instructions li {
+            margin-bottom: 0.75rem;
+        }
+        
+        .countdown {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin: 1.5rem 0;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+    </style>
+</head>
+<body>
+    <%- include('../partials/header') %>
+    
+    <div class="container">
+        <div class="verify-container">
+            <div class="verify-icon">📧</div>
+            
+            <h1 class="verify-title">Verify Your Email</h1>
+            
+            <p class="verify-message">
+                We've sent a verification email to:
+            </p>
+            
+            <div class="email-display">
+                <%= email %>
+            </div>
+            
+            <p class="verify-message">
+                Please check your inbox and click the verification link to activate your account.
+            </p>
+            
+            <div class="instructions">
+                <h3 style="margin-top: 0; margin-bottom: 1rem;">📋 Instructions:</h3>
+                <ol>
+                    <li>Check your email inbox for a message from <strong>ShadowCore</strong></li>
+                    <li>Open the email and click the <strong>"Verify Email Address"</strong> button</li>
+                    <li>You'll be redirected back to ShadowCore with your account activated</li>
+                    <li>If you don't see the email, check your <strong>spam or junk folder</strong></li>
+                </ol>
+            </div>
+            
+            <div class="countdown" id="resendCountdown">05:00</div>
+            
+            <p style="color: var(--text-muted); margin-bottom: 2rem;">
+                You can request a new verification email in:
+            </p>
+            
+            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                <button id="resendButton" class="btn btn-primary" disabled>
+                    Resend Verification Email
+                </button>
+                <a href="/auth/login" class="btn btn-secondary">
+                    Back to Login
+                </a>
+            </div>
+            
+            <div style="margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border);">
+                <p style="color: var(--text-muted); font-size: 0.9rem;">
+                    ⚠️ The verification link will expire in <strong>24 hours</strong>
+                </p>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">
+                    ❓ Need help? <a href="mailto:support@shadowcore.app" style="color: var(--primary);">Contact Support</a>
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Countdown timer for resend button
+        let countdown = 300; // 5 minutes in seconds
+        const countdownElement = document.getElementById('resendCountdown');
+        const resendButton = document.getElementById('resendButton');
+        
+        function updateCountdown() {
+            const minutes = Math.floor(countdown / 60);
+            const seconds = countdown % 60;
+            
+            countdownElement.textContent = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            if (countdown > 0) {
+                countdown--;
+                setTimeout(updateCountdown, 1000);
+            } else {
+                countdownElement.textContent = "00:00";
+                resendButton.disabled = false;
+                resendButton.textContent = "Resend Verification Email";
+                countdownElement.style.display = 'none';
+            }
+        }
+        
+        // Start countdown
+        updateCountdown();
+        
+        // Resend email function
+        resendButton.addEventListener('click', async function() {
+            this.disabled = true;
+            this.innerHTML = '<span class="loading"></span> Sending...';
+            
+            try {
+                const response = await fetch('/auth/resend-verification', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: '<%= email %>'
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showNotification('success', 'Verification email resent! Check your inbox.');
+                    
+                    // Reset countdown
+                    countdown = 300;
+                    countdownElement.style.display = 'block';
+                    updateCountdown();
+                    
+                    this.disabled = true;
+                    this.textContent = 'Resend Verification Email';
+                } else {
+                    showNotification('error', result.error || 'Failed to resend email');
+                    this.disabled = false;
+                    this.textContent = 'Resend Verification Email';
+                }
+            } catch (error) {
+                showNotification('error', 'Network error. Please try again.');
+                this.disabled = false;
+                this.textContent = 'Resend Verification Email';
+            }
+        });
+        
+        // Check if email is verified automatically
+        function checkVerificationStatus() {
+            fetch(`/auth/check-verification?email=<%= encodeURIComponent(email) %>`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.verified) {
+                        showNotification('success', 'Email verified! Redirecting...');
+                        setTimeout(() => {
+                            window.location.href = '/dashboard';
+                        }, 2000);
+                    }
+                })
+                .catch(() => {
+                    // Silently fail
+                });
+        }
+        
+        // Check every 10 seconds
+        setInterval(checkVerificationStatus, 10000);
+        
+        // Check immediately
+        setTimeout(checkVerificationStatus, 2000);
+    </script>
+</body>
+</html>
