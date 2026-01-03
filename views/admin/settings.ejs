@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title || 'System Settings' %> | ShadowCore Admin</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="stylesheet" href="/static/css/admin.css">
+    <style>
+        .settings-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 2rem;
+            overflow-x: auto;
+        }
+        
+        .settings-tab {
+            padding: 1rem 1.5rem;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            white-space: nowrap;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .settings-tab:hover {
+            color: var(--text-primary);
+        }
+        
+        .settings-tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+        
+        .settings-panel {
+            display: none;
+        }
+        
+        .settings-panel.active {
+            display: block;
+        }
+        
+        .env-var-row {
+            display: grid;
+            grid-template-columns: 1fr 2fr 100px;
+            gap: 1rem;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-light);
+        }
+        
+        .env-var-row:hover {
+            background: rgba(255,255,255,0.02);
+        }
+        
+        @media (max-width: 768px) {
+            .env-var-row {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-layout">
+        <%- include('../partials/admin-sidebar', { currentPage: 'settings' }) %>
+        
+        <main class="admin-content">
+            <h1>⚙️ System Settings</h1>
+            
+            <!-- Settings Tabs -->
+            <div class="settings-tabs">
+                <button class="settings-tab active" onclick="showTab('general')">🌐 General</button>
+                <button class="settings-tab" onclick="showTab('email')">📧 Email</button>
+                <button class="settings-tab" onclick="showTab('security')">🔒 Security</button>
+                <button class="settings-tab" onclick="showTab('plugins')">🧩 Plugins</button>
+                <button class="settings-tab" onclick="showTab('env')">⚡ Environment</button>
+                <button class="settings-tab" onclick="showTab('backup')">💾 Backup</button>
+            </div>
+            
+            <!-- General Settings -->
+            <div id="general-tab" class="settings-panel active">
+                <div class="card">
+                    <h3 style="margin-bottom: 1.5rem;">🌐 General Settings</h3>
+                    
+                    <form id="generalSettingsForm" onsubmit="saveGeneralSettings(event)">
+                        <div class="form-group">
+                            <label>Site Name</label>
+                            <input type="text" name="site_name" class="form-control" 
+                                   value="<%= env.SITE_NAME || 'ShadowCore' %>">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Site URL</label>
+                            <input type="url" name="site_url" class="form-control" 
+                                   value="<%= env.APP_URL || 'http://localhost:3000' %>">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Admin Email</label>
+                            <input type="email" name="admin_email" class="form-control" 
+                                   value="<%= env.ADMIN_EMAIL || 'admin@shadowcore.app' %>">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Default Theme</label>
+                            <select name="default_theme" class="form-control">
+                                <option value="dark" <%= (env.DEFAULT_THEME || 'dark') === 'dark' ? 'selected' : '' %>>Dark</option>
+                                <option value="light" <%= (env.DEFAULT_THEME || 'dark') === 'light' ? 'selected' : '' %>>Light</option>
+                                <option value="midnight" <%= (env.DEFAULT_THEME || 'dark') === 'midnight' ? 'selected' : '' %>>Midnight</option>
+                                <option value="ocean" <%= (env.DEFAULT_THEME || 'dark') === 'ocean' ? 'selected' : '' %>>Ocean</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Timezone</label>
+                            <select name="timezone" class="form-control">
+                                <option value="UTC" <%= (env.TIMEZONE || 'UTC') === 'UTC' ? 'selected' : '' %>>UTC</option>
+                                <option value="Asia/Karachi" <%= (env.TIMEZONE || 'UTC') === 'Asia/Karachi' ? 'selected' : '' %>>Pakistan Time (UTC+5)</option>
+                                <option value="America/New_York" <%= (env.TIMEZONE || 'UTC') === 'America/New_York' ? 'selected' : '' %>>Eastern Time (UTC-5)</option>
+                                <option value="Europe/London" <%= (env.TIMEZONE || 'UTC') === 'Europe/London' ? 'selected' : '' %>>London (UTC+0)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Maintenance Mode</label>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <input type="checkbox" name="maintenance_mode" id="maintenance_mode" 
+                                       <%= env.MAINTENANCE_MODE === 'true' ? 'checked' : '' %>>
+                                <label for="maintenance_mode">Enable maintenance mode</label>
+                            </div>
+                            <small style="color: var(--text-muted);">When enabled, only admins can access the site</small>
+                        </div>
+                        
+                        <div style="display: flex; gap: 0.5rem; margin-top: 1.5rem;">
+                            <button type="submit" class="btn btn-primary">💾 Save Settings</button>
+                            <button type="button" onclick="resetGeneralSettings()" class="btn btn-secondary">🔄 Reset</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Email Settings -->
+            <div id="email-tab" class="settings-panel">
+                <div class="card">
+                    <h3 style="margin-bottom: 1.5rem;">📧 Email Settings</h3>
+                    
+                    <form id="emailSettingsForm" onsubmit="saveEmailSettings(event)">
+                        <div class="form-group">
+                            <label>Resend.com API Key</label>
+                            <input type="password" name="resend_api_key" class="form-control" 
+                                   value="<%= env.RESEND_API_KEY || '' %>"
+                                   placeholder="re_KLNiEivw_CKWPC6uskbxrNP1n2chKVBv2">
+                            <small style="color: var(--text-muted);">
+                                API key from <a href="https://resend.com" target="_blank">resend.com</a>
+                            </small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Sender Email</label>
+                            <input type="email" name="email_from" class="form-control" 
+                                   value="<%= env.EMAIL_FROM || 'ShadowCore <noreply@shadowcore.app>' %>">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Email Verification</label>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <input type="checkbox" name="email_verification" id="email_verification" 
+                                       <%= env.EMAIL_VERIFICATION !== 'false' ? 'checked' : '' %>>
+                                <label for="email_verification">Require email verification for new users</label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>SMTP Server (Alternative)</label>
+                            <input type="text" name="smtp_host" class="form-control" 
+                                   value="<%= env.SMTP_HOST || '' %>" placeholder="smtp.gmail.com">
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div class="form-group">
+                                <label>SMTP Port</label>
+                                <input type="number" name="smtp_port" class="form-control" 
+                                       value="<%= env.SMTP_PORT || '587' %>">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>SMTP Security</label>
+                                <select name="smtp_secure
