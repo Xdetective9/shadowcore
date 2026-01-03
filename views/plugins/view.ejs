@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= plugin.name %> | ShadowCore</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="stylesheet" href="/static/css/plugins.css">
+    <style>
+        .plugin-header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 3rem 0;
+            border-radius: var(--radius);
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .plugin-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.2);
+        }
+        
+        .plugin-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .plugin-details {
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            padding: 2rem;
+        }
+        
+        .plugin-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        
+        .plugin-meta {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin: 1.5rem 0;
+        }
+        
+        .meta-badge {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .plugin-actions {
+            display: flex;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        
+        .plugin-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            margin: 2rem 0;
+        }
+        
+        .tab-btn {
+            padding: 1rem 1.5rem;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-weight: 600;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .tab-btn.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .feature-list li {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .feature-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .logs-container {
+            background: var(--bg-secondary);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .log-entry {
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border);
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+        
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <%- include('../partials/header', { currentPage: 'plugins' }) %>
+    
+    <div class="container">
+        <!-- Plugin Header -->
+        <div class="plugin-header">
+            <div style="position: relative; z-index: 1;">
+                <div style="display: flex; align-items: center; gap: 1.5rem; margin-bottom: 1rem;">
+                    <div style="font-size: 4rem;">
+                        <%= plugin.icon || '🧩' %>
+                    </div>
+                    <div>
+                        <h1 style="margin: 0; font-size: 2.5rem;">
+                            <%= plugin.name %>
+                        </h1>
+                        <p style="opacity: 0.9; margin-top: 0.5rem;">
+                            <%= plugin.description || 'No description available' %>
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="plugin-meta">
+                    <div class="meta-badge">
+                        <span>📦</span>
+                        <span>v<%= plugin.version || '1.0.0' %></span>
+                    </div>
+                    
+                    <div class="meta-badge">
+                        <span>👤</span>
+                        <span><%= plugin.author || 'Unknown' %></span>
+                    </div>
+                    
+                    <div class="meta-badge">
+                        <span>🏷️</span>
+                        <span><%= plugin.category || 'utility' %></span>
+                    </div>
+                    
+                    <% if (plugin.enabled) { %>
+                        <div class="meta-badge" style="background: rgba(16, 185, 129, 0.2);">
+                            <span>✅</span>
+                            <span>Enabled</span>
+                        </div>
+                    <% } else { %>
+                        <div class="meta-badge" style="background: rgba(239, 68, 68, 0.2);">
+                            <span>⏸️</span>
+                            <span>Disabled</span>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Plugin Actions -->
+        <div class="plugin-actions">
+            <% if (user && user.role === 'admin') { %>
+                <% if (plugin.enabled) { %>
+                    <button onclick="togglePlugin('<%= plugin.id %>', false)" class="btn btn-secondary">
+                        ⏸️ Disable Plugin
+                    </button>
+                <% } else { %>
+                    <button onclick="togglePlugin('<%= plugin.id %>', true)" class="btn btn-primary">
+                        ▶️ Enable Plugin
+                    </button>
+                <% } %>
+                
+                <button onclick="reloadPlugin('<%= plugin.id %>')" class="btn btn-secondary">
+                    🔄 Reload Plugin
+                </button>
+                
+                <button onclick="deletePlugin('<%= plugin.id %>', '<%= plugin.name %>')" class="btn btn-danger">
+                    🗑️ Delete Plugin
+                </button>
+            <% } else if (plugin.enabled) { %>
+                <button onclick="loadPlugin('<%= plugin.id %>')" class="btn btn-primary">
+                    🚀 Load Plugin
+                </button>
+            <% } %>
+            
+            <a href="/plugins" class="btn btn-secondary">
+                ← Back to Plugins
+            </a>
+        </div>
+        
+        <!-- Tabs -->
+        <div class="plugin-tabs">
+            <button class="tab-btn active" onclick="switchTab('details')">
+                📋 Details
+            </button>
+            <button class="tab-btn" onclick="switchTab('features')">
+                ✨ Features
+            </button>
+            <button class="tab-btn" onclick="switchTab('usage')">
+                📖 Usage
+            </button>
+            <button class="tab-btn" onclick="switchTab('logs')">
+                📊 Logs
+            </button>
+        </div>
+        
+        <div class="plugin-content">
+            <!-- Main Content -->
+            <div>
+                <!-- Details Tab -->
+                <div id="details-tab" class="tab-content active">
+                    <div class="plugin-details">
+                        <h3>About this Plugin</h3>
+                        <p style="line-height: 1.6; margin: 1.5rem 0;">
+                            <%= plugin.description || 'No detailed description available.' %>
+                        </p>
+                        
+                        <% if (plugin.dependencies && plugin.dependencies.length > 0) { %>
+                            <div style="margin: 2rem 0;">
+                                <h4>📦 Dependencies</h4>
+                                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem;">
+                                    <% plugin.dependencies.forEach(dep => { %>
+                                        <span style="background: rgba(99, 102, 241, 0.1); padding: 0.5rem 1rem; border-radius: 4px;">
+                                            <%= dep %>
+                                        </span>
+                                    <% }) %>
+                                </div>
+                            </div>
+                        <% } %>
+                        
+                        <div style="margin: 2rem 0;">
+                            <h4>⚙️ Configuration</h4>
+                            <div style="background: var(--bg-secondary); padding: 1.5rem; border-radius: var(--radius); margin-top: 1rem;">
+                                <pre style="margin: 0; color: var(--text-secondary); font-family: monospace; overflow-x: auto;">
+<%= JSON.stringify(plugin.config || {}, null, 2) %>
+                                </pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Features Tab -->
+                <div id="features-tab" class="tab-content">
+                    <div class="plugin-details">
+                        <h3>✨ Features</h3>
+                        <ul class="feature-list">
+                            <li><span>✅</span> Auto-loading system</li>
+                            <li><span>✅</span> Hot-reload capability</li>
+                            <li><span>✅</span> Plugin-specific routing</li>
+                            <li><span>✅</span> CSS/JS injection</li>
+                            <li><span>✅</span> Admin panel integration</li>
+                            <li><span>✅</span> Real-time updates</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Usage Tab -->
+                <div id="usage-tab" class="tab-content">
+                    <div class="plugin-details">
+                        <h3>📖 How to Use</h3>
+                        <div style="margin: 1.5rem 0;">
+                            <h4>API Endpoints</h4>
+                            <div style="background: var(--bg-secondary); padding: 1.5rem; border-radius: var(--radius); margin-top: 0.5rem;">
+                                <code style="color: var(--primary);">
+                                    /api/plugins/<%= plugin.id %>/*
+                                </code>
+                            </div>
+                        </div>
+                        
+                        <div style="margin: 1.5rem 0;">
+                            <h4>Example Request</h4>
+                            <pre style="background: var(--bg-secondary); padding: 1.5rem; border-radius: var(--radius); margin-top: 0.5rem; overflow-x: auto;">
+<code class="language-javascript">
+// JavaScript example
+fetch('/api/plugins/<%= plugin.id %>/status')
+    .then(response => response.json())
+    .then(data => console.log(data));
+</code>
+                            </pre>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Logs Tab -->
+                <div id="logs-tab" class="tab-content">
+                    <div class="plugin-details">
+                        <h3>📊 Recent Activity</h3>
+                        <div class="logs-container">
+                            <% if (logs && logs.length > 0) { %>
+                                <% logs.forEach(log => { %>
+                                    <div class="log-entry">
+                                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                                            <span style="color: var(--primary);">
+                                                <%= new Date(log.timestamp).toLocaleString() %>
+                                            </span>
+                                            <span style="color: <%= log.result === 'success' ? '#10b981' : '#ef4444' %>;">
+                                                <%= log.result %>
+                                            </span>
+                                        </div>
+                                        <div style="color: var(--text-secondary);">
+                                            <%= log.action || 'Unknown action' %>
+                                        </div>
+                                    </div>
+                                <% }) %>
+                            <% } else { %>
+                                <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+                                    <div style="font-size: 3rem; margin-bottom: 1rem;">📝</div>
+                                    <p>No activity logs yet</p>
+                                </div>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sidebar -->
+            <div class="plugin-sidebar">
+                <!-- Status Card -->
+                <div style="background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: var(--radius); padding: 1.5rem;">
+                    <h4 style="margin-bottom: 1rem;">📊 Status</h4>
+                    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Status:</span>
+                            <span style="color: <%= plugin.enabled ? '#10b981' : '#ef4444' %>; font-weight: 600;">
+                                <%= plugin.enabled ? 'Active' : 'Disabled' %>
+                            </span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Loaded:</span>
+                            <span><%= new Date(plugin.loadedAt || plugin.installedAt).toLocaleDateString() %></span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Version:</span>
+                            <span>v<%= plugin.version || '1.0.0' %></span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Category:</span>
+                            <span><%= plugin.category || 'utility' %></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Quick Actions -->
+                <div style="background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: var(--radius); padding: 1.5rem;">
+                    <h4 style="margin-bottom: 1rem;">⚡ Quick Actions</h4>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <button onclick="testPlugin('<%= plugin.id %>')" class="btn btn-sm" style="justify-content: flex-start;">
+                            🧪 Test Plugin
+                        </button>
+                        <button onclick="checkHealth('<%= plugin.id %>')" class="btn btn-sm" style="justify-content: flex-start;">
+                            🏥 Check Health
+                        </button>
+                        <button onclick="viewApiDocs('<%= plugin.id %>')" class="btn btn-sm" style="justify-content: flex-start;">
+                            📚 API Docs
+                        </button>
+                        <% if (user && user.role === 'admin') { %>
+                            <button onclick="editConfig('<%= plugin.id %>')" class="btn btn-sm" style="justify-content: flex-start;">
+                                ⚙️ Edit Config
+                            </button>
+                        <% } %>
+                    </div>
+                </div>
+                
+                <!-- Support -->
+                <div style="background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: var(--radius); padding: 1.5rem;">
+                    <h4 style="margin-bottom: 1rem;">🛟 Support</h4>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
+                        Need help with this plugin?
+                    </p>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <a href="mailto:support@shadowcore.app?subject=Help with <%= plugin.name %> Plugin" 
+                           class="btn btn-sm" style="justify-content: flex-start;">
+                            📧 Email Support
+                        </a>
+                        <a href="/docs/plugins/<%= plugin.id %>" 
+                           class="btn btn-sm" style="justify-content: flex-start;">
+                            📖 Documentation
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Tab switching
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName + '-tab').classList.add('active');
+            
+            // Add active class to clicked button
+            event.target.classList.add('active');
+        }
+        
+        // Plugin actions
+        function togglePlugin(pluginId, enable) {
+            fetch(`/admin/plugins/${pluginId}/toggle`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ enabled: enable })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            });
+        }
+        
+        function reloadPlugin(pluginId) {
+            if (confirm('Reload this plugin? Any unsaved data may be lost.')) {
+                fetch(`/admin/plugins/${pluginId}/reload`, {
+                    method: 'POST'
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Plugin reloaded successfully');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.error);
+                    }
+                });
+            }
+        }
+        
+        function deletePlugin(pluginId, pluginName) {
+            if (confirm(`Permanently delete "${pluginName}"? This cannot be undone!`)) {
+                fetch(`/admin/plugins/${pluginId}`, {
+                    method: 'DELETE'
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Plugin deleted successfully');
+                        window.location.href = '/plugins';
+                    } else {
+                        alert('Error: ' + data.error);
+                    }
+                });
+            }
+        }
+        
+        function loadPlugin(pluginId) {
+            fetch(`/api/plugins/${pluginId}/load`, {
+                method: 'POST'
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Plugin loaded successfully!');
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            });
+        }
+        
+        function testPlugin(pluginId) {
+            fetch(`/api/plugins/${pluginId}/test`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('✅ Plugin test passed!\n' + JSON.stringify(data, null, 2));
+                    } else {
+                        alert('❌ Plugin test failed: ' + (data.error || 'Unknown error'));
+                    }
+                })
+                .catch(error => {
+                    alert('❌ Test failed: ' + error.message);
+                });
+        }
+        
+        function checkHealth(pluginId) {
+            fetch(`/api/plugins/${pluginId}/health`)
+                .then(res => res.json())
+                .then(data => {
+                    alert('🏥 Plugin Health Check:\n' + JSON.stringify(data, null, 2));
+                });
+        }
+        
+        function viewApiDocs(pluginId) {
+            window.open(`/api/docs/plugins/${pluginId}`, '_blank');
+        }
+        
+        function editConfig(pluginId) {
+            const newConfig = prompt('Enter new configuration (JSON):', '{}');
+            if (newConfig) {
+                try {
+                    JSON.parse(newConfig);
+                    fetch(`/admin/plugins/${pluginId}/config`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: newConfig
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('Configuration updated');
+                            location.reload();
+                        } else {
+                            alert('Error: ' + data.error);
+                        }
+                    });
+                } catch (e) {
+                    alert('Invalid JSON format');
+                }
+            }
+        }
+        
+        // Auto-refresh logs
+        setInterval(() => {
+            if (document.getElementById('logs-tab').classList.contains('active')) {
+                fetch(`/api/plugins/<%= plugin.id %>/logs`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.logs) {
+                            // Update logs display
+                        }
+                    });
+            }
+        }, 10000);
+    </script>
+</body>
+</html>
