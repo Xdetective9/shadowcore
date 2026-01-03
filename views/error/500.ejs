@@ -152,7 +152,7 @@
             <div style="margin-top: 3rem; color: var(--text-muted); font-size: 0.9rem;">
                 <p>Error ID: <code><%= new Date().getTime() %></code></p>
                 <p>Timestamp: <code><%= new Date().toISOString() %></code></p>
-                <p>Session: <code><%= req.sessionID ? req.sessionID.substring(0, 8) + '...' : 'none' %></code></p>
+                <p>Session: <code><%= locals.req && locals.req.sessionID ? locals.req.sessionID.substring(0, 8) + '...' : 'none' %></code></p>
             </div>
         </div>
     </div>
