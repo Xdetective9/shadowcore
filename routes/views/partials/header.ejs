@@ -1,0 +1,134 @@
+<nav class="navbar">
+    <div class="nav-content">
+        <!-- Logo -->
+        <a href="/" class="logo">
+            <span class="logo-icon">🚀</span>
+            <span>ShadowCore</span>
+        </a>
+        
+        <!-- Desktop Navigation -->
+        <div class="nav-menu" id="navMenu">
+            <a href="/" class="nav-link <%= currentPage === 'home' ? 'active' : '' %>">
+                🏠 Home
+            </a>
+            <a href="/features" class="nav-link <%= currentPage === 'features' ? 'active' : '' %>">
+                ✨ Features
+            </a>
+            <a href="/plugins" class="nav-link <%= currentPage === 'plugins' ? 'active' : '' %>">
+                🧩 Plugins
+            </a>
+            
+            <% if (user) { %>
+                <a href="/dashboard" class="nav-link <%= currentPage === 'dashboard' ? 'active' : '' %>">
+                    📊 Dashboard
+                </a>
+                
+                <% if (user.role === 'admin') { %>
+                    <a href="/admin" class="nav-link <%= currentPage === 'admin' ? 'active' : '' %>">
+                        ⚡ Admin
+                    </a>
+                <% } %>
+                
+                <!-- User Dropdown -->
+                <div class="dropdown">
+                    <button class="btn btn-sm" style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span>👤 <%= user.username || user.email.split('@')[0] %></span>
+                        <span>▼</span>
+                    </button>
+                    <div class="dropdown-content">
+                        <a href="/profile" class="dropdown-item">👤 Profile</a>
+                        <a href="/settings" class="dropdown-item">⚙️ Settings</a>
+                        <a href="/themes" class="dropdown-item">🎨 Themes</a>
+                        <div class="dropdown-divider"></div>
+                        <a href="/auth/logout" class="dropdown-item" style="color: #ef4444;">🚪 Logout</a>
+                    </div>
+                </div>
+            <% } else { %>
+                <a href="/auth/login" class="nav-link <%= currentPage === 'login' ? 'active' : '' %>">
+                    🔑 Login
+                </a>
+                <a href="/auth/signup" class="btn btn-sm btn-primary">
+                    ✨ Sign Up
+                </a>
+            <% } %>
+            
+            <!-- Theme Switcher -->
+            <div class="theme-switcher">
+                <button class="theme-btn <%= theme === 'dark' ? 'active' : '' %>" data-theme="dark" title="Dark"></button>
+                <button class="theme-btn <%= theme === 'light' ? 'active' : '' %>" data-theme="light" title="Light"></button>
+                <button class="theme-btn <%= theme === 'midnight' ? 'active' : '' %>" data-theme="midnight" title="Midnight"></button>
+                <button class="theme-btn <%= theme === 'ocean' ? 'active' : '' %>" data-theme="ocean" title="Ocean"></button>
+            </div>
+        </div>
+        
+        <!-- Mobile Menu Toggle -->
+        <button class="hamburger" id="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </div>
+</nav>
+
+<style>
+    .dropdown {
+        position: relative;
+        display: inline-block;
+    }
+    
+    .dropdown-content {
+        display: none;
+        position: absolute;
+        right: 0;
+        background: var(--bg-card);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius);
+        min-width: 160px;
+        box-shadow: var(--shadow);
+        z-index: 1000;
+        margin-top: 0.5rem;
+        backdrop-filter: blur(20px);
+    }
+    
+    .dropdown:hover .dropdown-content {
+        display: block;
+    }
+    
+    .dropdown-item {
+        display: block;
+        padding: 0.75rem 1rem;
+        color: var(--text-primary);
+        text-decoration: none;
+        transition: background 0.3s ease;
+    }
+    
+    .dropdown-item:hover {
+        background: rgba(255, 255, 255, 0.05);
+    }
+    
+    .dropdown-divider {
+        height: 1px;
+        background: var(--border);
+        margin: 0.25rem 0;
+    }
+</style>
+
+<script>
+    // Mobile menu toggle
+    document.getElementById('hamburger')?.addEventListener('click', () => {
+        const navMenu = document.getElementById('navMenu');
+        navMenu.classList.toggle('active');
+        document.getElementById('hamburger').classList.toggle('active');
+    });
+    
+    // Close menu when clicking outside
+    document.addEventListener('click', (event) => {
+        const hamburger = document.getElementById('hamburger');
+        const navMenu = document.getElementById('navMenu');
+        
+        if (!hamburger.contains(event.target) && !navMenu.contains(event.target)) {
+            navMenu.classList.remove('active');
+            hamburger.classList.remove('active');
+        }
+    });
+</script>
