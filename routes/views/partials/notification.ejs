@@ -1,0 +1,242 @@
+<!-- Notification Container -->
+<div id="notification-container" style="position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; max-width: 400px;"></div>
+
+<!-- Notification Template -->
+<template id="notification-template">
+    <div class="notification" data-type="info">
+        <div class="notification-icon"></div>
+        <div class="notification-content">
+            <div class="notification-title"></div>
+            <div class="notification-message"></div>
+        </div>
+        <button class="notification-close">×</button>
+        <div class="notification-progress"></div>
+    </div>
+</template>
+
+<style>
+    .notification {
+        background: var(--bg-card);
+        border: 1px solid var(--glass-border);
+        border-radius: 12px;
+        padding: 1rem 1.5rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        backdrop-filter: blur(20px);
+        box-shadow: var(--shadow);
+        position: relative;
+        overflow: hidden;
+        animation: slideIn 0.3s ease;
+        max-width: 400px;
+    }
+    
+    .notification[data-type="success"] {
+        border-left: 4px solid #10b981;
+        background: rgba(16, 185, 129, 0.05);
+    }
+    
+    .notification[data-type="error"] {
+        border-left: 4px solid #ef4444;
+        background: rgba(239, 68, 68, 0.05);
+    }
+    
+    .notification[data-type="warning"] {
+        border-left: 4px solid #f59e0b;
+        background: rgba(245, 158, 11, 0.05);
+    }
+    
+    .notification[data-type="info"] {
+        border-left: 4px solid #3b82f6;
+        background: rgba(59, 130, 246, 0.05);
+    }
+    
+    .notification-icon {
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+    
+    .notification[data-type="success"] .notification-icon::before {
+        content: "✅";
+    }
+    
+    .notification[data-type="error"] .notification-icon::before {
+        content: "❌";
+    }
+    
+    .notification[data-type="warning"] .notification-icon::before {
+        content: "⚠️";
+    }
+    
+    .notification[data-type="info"] .notification-icon::before {
+        content: "ℹ️";
+    }
+    
+    .notification-content {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .notification-title {
+        font-weight: bold;
+        margin-bottom: 0.25rem;
+        color: var(--text-primary);
+    }
+    
+    .notification-message {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        line-height: 1.4;
+    }
+    
+    .notification-close {
+        background: none;
+        border: none;
+        color: var(--text-secondary);
+        font-size: 1.5rem;
+        cursor: pointer;
+        padding: 0;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: color 0.3s ease;
+    }
+    
+    .notification-close:hover {
+        color: var(--text-primary);
+    }
+    
+    .notification-progress {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 3px;
+        background: var(--primary);
+        animation: progress 5s linear forwards;
+    }
+    
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    @keyframes progress {
+        from { width: 100%; }
+        to { width: 0%; }
+    }
+    
+    .notification.hiding {
+        animation: slideOut 0.3s ease forwards;
+    }
+    
+    @keyframes slideOut {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+</style>
+
+<script>
+    // Global notification function
+    window.showNotification = function(type, message, title = '', duration = 5000) {
+        const container = document.getElementById('notification-container');
+        const template = document.getElementById('notification-template');
+        
+        // Clone the template
+        const notification = template.content.cloneNode(true).querySelector('.notification');
+        
+        // Set notification type
+        notification.setAttribute('data-type', type);
+        
+        // Set content
+        if (title) {
+            notification.querySelector('.notification-title').textContent = title;
+        }
+        notification.querySelector('.notification-message').textContent = message;
+        
+        // Add to container
+        container.appendChild(notification);
+        
+        // Close button
+        notification.querySelector('.notification-close').addEventListener('click', () => {
+            removeNotification(notification);
+        });
+        
+        // Auto-remove after duration
+        if (duration > 0) {
+            setTimeout(() => {
+                removeNotification(notification);
+            }, duration);
+        }
+        
+        return notification;
+    };
+    
+    function removeNotification(notification) {
+        notification.classList.add('hiding');
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }
+    
+    // Predefined notification types
+    window.showSuccess = (message, title = 'Success') => showNotification('success', message, title);
+    window.showError = (message, title = 'Error') => showNotification('error', message, title);
+    window.showWarning = (message, title = 'Warning') => showNotification('warning', message, title);
+    window.showInfo = (message, title = 'Info') => showNotification('info', message, title);
+    
+    // Socket.IO notifications
+    if (typeof socket !== 'undefined') {
+        socket.on('notification', (data) => {
+            showNotification(data.type || 'info', data.message, data.title);
+        });
+        
+        socket.on('plugin_loaded', (data) => {
+            showSuccess(`Plugin "${data.name}" loaded successfully`, 'Plugin Loaded');
+        });
+        
+        socket.on('plugin_error', (data) => {
+            showError(data.error, 'Plugin Error');
+        });
+    }
+    
+    // Check for URL success/error messages
+    document.addEventListener('DOMContentLoaded', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const success = urlParams.get('success');
+        const error = urlParams.get('error');
+        const message = urlParams.get('message');
+        
+        if (success) {
+            showSuccess(success, 'Success');
+            // Clean URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+        
+        if (error) {
+            showError(error, 'Error');
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+        
+        if (message) {
+            showInfo(message, 'Message');
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    });
+</script>
