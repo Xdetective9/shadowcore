@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>500 - Server Error | ShadowCore</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+    <style>
+        .error-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, transparent 100%);
+        }
+        
+        .error-content {
+            max-width: 600px;
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            padding: 3rem;
+            backdrop-filter: blur(20px);
+        }
+        
+        .error-code {
+            font-size: 8rem;
+            font-weight: 900;
+            color: #ef4444;
+            margin-bottom: 1rem;
+            line-height: 1;
+        }
+        
+        .error-title {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+        
+        .error-message {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        
+        .error-details {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            margin: 2rem 0;
+            text-align: left;
+            font-family: monospace;
+            font-size: 0.9rem;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .error-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+        }
+        
+        .error-icon {
+            font-size: 6rem;
+            margin-bottom: 2rem;
+            animation: pulse 2s ease-in-out infinite;
+            display: inline-block;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+        
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(239, 68, 68, 0.1);
+            border-radius: var(--radius);
+            margin-bottom: 1rem;
+        }
+        
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ef4444;
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <div class="error-content">
+            <div class="error-icon">⚠️</div>
+            <div class="error-code">500</div>
+            
+            <div class="status-indicator">
+                <span class="status-dot"></span>
+                <span>System Error Detected</span>
+            </div>
+            
+            <h1 class="error-title">Server Error</h1>
+            
+            <p class="error-message">
+                <%= message || "Something went wrong on our end. Our team has been notified and is working to fix the issue." %>
+            </p>
+            
+            <% if (process.env.NODE_ENV === 'development' && error) { %>
+                <div class="error-details">
+                    <strong>Error Details:</strong>
+                    <pre style="margin: 0.5rem 0; white-space: pre-wrap;"><%= error.message %></pre>
+                    <% if (error.stack) { %>
+                        <strong>Stack Trace:</strong>
+                        <pre style="margin: 0.5rem 0; white-space: pre-wrap; font-size: 0.8rem;"><%= error.stack %></pre>
+                    <% } %>
+                </div>
+            <% } %>
+            
+            <div style="color: var(--text-muted); margin: 1.5rem 0;">
+                <p>We apologize for the inconvenience. Please try again in a few moments.</p>
+                <p>If the problem persists, contact our support team.</p>
+            </div>
+            
+            <div class="error-actions">
+                <a href="/" class="btn btn-primary">
+                    🏠 Go to Homepage
+                </a>
+                <button onclick="window.location.reload()" class="btn btn-secondary">
+                    🔄 Refresh Page
+                </button>
+                <a href="mailto:support@shadowcore.app?subject=Server%20Error%20Report&body=Error%20ID:%20<%= new Date().getTime() %>" 
+                   class="btn btn-secondary">
+                    📧 Contact Support
+                </a>
+            </div>
+            
+            <div style="margin-top: 3rem; color: var(--text-muted); font-size: 0.9rem;">
+                <p>Error ID: <code><%= new Date().getTime() %></code></p>
+                <p>Timestamp: <code><%= new Date().toISOString() %></code></p>
+                <p>Session: <code><%= req.sessionID ? req.sessionID.substring(0, 8) + '...' : 'none' %></code></p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Auto-refresh after 30 seconds if still error
+        setTimeout(() => {
+            fetch('/health')
+                .then(res => {
+                    if (res.ok) {
+                        window.location.reload();
+                    }
+                })
+                .catch(() => {
+                    // Server still down, try again in 30 seconds
+                    setTimeout(() => window.location.reload(), 30000);
+                });
+        }, 30000);
+        
+        // Log error for analytics
+        if (typeof gtag !== 'undefined') {
+            gtag('event', 'exception', {
+                description: '500 Server Error',
+                fatal: true
+            });
+        }
+        
+        // Try to auto-recover by checking health endpoint
+        function checkHealth() {
+            return fetch('/health')
+                .then(res => res.ok)
+                .catch(() => false);
+        }
+        
+        // Show recovery status
+        const recoveryStatus = document.createElement('div');
+        recoveryStatus.innerHTML = `
+            <div style="margin-top: 1rem; padding: 1rem; background: rgba(16, 185, 129, 0.1); border-radius: var(--radius);">
+                <p style="margin: 0; color: var(--text-secondary);">
+                    <span class="loading" style="width: 16px; height: 16px; margin-right: 0.5rem;"></span>
+                    Monitoring system health...
+                </p>
+            </div>
+        `;
+        
+        document.querySelector('.error-content').appendChild(recoveryStatus);
+        
+        // Check health every 10 seconds
+        let checks = 0;
+        const healthCheck = setInterval(() => {
+            checkHealth().then(healthy => {
+                checks++;
+                if (healthy) {
+                    clearInterval(healthCheck);
+                    recoveryStatus.innerHTML = `
+                        <div style="margin-top: 1rem; padding: 1rem; background: rgba(16, 185, 129, 0.2); border-radius: var(--radius);">
+                            <p style="margin: 0; color: #10b981;">
+                                ✅ System recovered! Refreshing page...
+                            </p>
+                        </div>
+                    `;
+                    setTimeout(() => window.location.reload(), 2000);
+                } else if (checks >= 6) { // After 1 minute
+                    clearInterval(healthCheck);
+                    recoveryStatus.innerHTML = `
+                        <div style="margin-top: 1rem; padding: 1rem; background: rgba(245, 158, 11, 0.1); border-radius: var(--radius);">
+                            <p style="margin: 0; color: #f59e0b;">
+                                ⚠️ Still experiencing issues. Please contact support.
+                            </p>
+                        </div>
+                    `;
+                }
+            });
+        }, 10000);
+    </script>
+</body>
+</html>
