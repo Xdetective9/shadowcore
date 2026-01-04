@@ -4,9 +4,7 @@ services:
     env: node
     region: singapore
     plan: free
-    buildCommand: |
-      npm install
-      npm run setup
+    buildCommand: npm run render-build
     startCommand: npm start
     healthCheckPath: /health
     autoDeploy: true
@@ -14,16 +12,16 @@ services:
       - key: NODE_ENV
         value: production
       - key: PORT
-        value: 3000
+        value: 10000
       - key: SESSION_SECRET
         generateValue: true
+      - key: PEPPER
+        generateValue: true
+      - key: ADMIN_PASSWORD
+        value: Rana0986
       - key: RESEND_API_KEY
         value: re_KLNiEivw_CKWPC6uskbxrNP1n2chKVBv2
       - key: REMOVEBG_API_KEY
         value: xv5aoeuirxTNZBYS5KykZZEK
-      - key: ADMIN_PASSWORD
-        value: Rana0986
-      - key: EMAIL_FROM
-        value: ShadowCore <noreply@shadowcore.app>
       - key: APP_URL
-        value: https://shadowcore.onrender.com
+        sync: false
