@@ -289,26 +289,30 @@ app.use((err, req, res, next) => {
 // ========== START SERVER ==========
 async function startServer() {
     try {
-        // Create directories
-        const dirs = ['plugins', 'uploads', 'public', 'views', 'data'];
-        for (const dir of dirs) {
-            try {
-                await fs.mkdir(path.join(__dirname, dir), { recursive: true });
-            } catch (err) {}
-        }
-        
         // Load plugins
         await loadPlugins();
         
-        // Load routes
-        await loadRoutes();
+        const PORT = process.env.PORT || 10000;
         
-        app.listen(PORT, () => {
+        app.listen(PORT, '0.0.0.0', () => {
             console.log(`
-🚀 ShadowCore Started on port ${PORT}
-👉 Website: http://localhost:${PORT}
-🔐 Admin: http://localhost:${PORT}/auth/admin/login
-📦 Plugins: ${global.plugins.size} loaded
+╔══════════════════════════════════════════════════════════╗
+║                  🚀 SHADOWCORE v3.0                      ║
+╠══════════════════════════════════════════════════════════╣
+║ 📍 Port: ${PORT}                                    ║
+║ 🌐 URL: http://0.0.0.0:${PORT}                                ║
+║ 📦 Plugins: ${global.plugins.length} loaded ║
+║ 🎨 Theme: dark                                     ║
+╠══════════════════════════════════════════════════════════╣
+║         ✅ UNIVERSAL PLUGIN SYSTEM READY                ║
+╚══════════════════════════════════════════════════════════╝
+
+👤 Admin: /admin/login
+🔐 Password: ${process.env.ADMIN_PASSWORD || 'Rana0986'}
+📧 Email: Resend.com integrated
+🧩 Plugins: Auto-loaded (${global.plugins.length} loaded)
+🛠️  Upload: /admin/plugins/upload
+📊 Database: Simple JSON (No foreign key errors)
             `);
         });
     } catch (error) {
