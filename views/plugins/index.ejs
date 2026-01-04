@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/static/css/main.css">
+</head>
+<body>
+    <nav style="background: rgba(15, 23, 42, 0.8); padding: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1);">
+        <div style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center;">
+            <a href="/" style="font-size: 1.5rem; font-weight: bold; color: white; text-decoration: none;">
+                🚀 ShadowCore
+            </a>
+            <div>
+                <a href="/" style="color: #94a3b8; text-decoration: none; margin-right: 1rem;">Home</a>
+                <a href="/features" style="color: #94a3b8; text-decoration: none; margin-right: 1rem;">Features</a>
+                <% if (user) { %>
+                    <a href="/dashboard" style="color: #94a3b8; text-decoration: none; margin-right: 1rem;">Dashboard</a>
+                    <% if (user.role === 'admin') { %>
+                        <a href="/admin" style="color: #94a3b8; text-decoration: none; margin-right: 1rem;">Admin</a>
+                    <% } %>
+                <% } else { %>
+                    <a href="/auth/login" style="color: #94a3b8; text-decoration: none;">Login</a>
+                <% } %>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="container" style="max-width: 1200px; margin: 2rem auto; padding: 0 1rem;">
+        <h1>🧩 Plugin Marketplace</h1>
+        <p style="color: #94a3b8; margin-bottom: 2rem;">Extend your platform with powerful plugins</p>
+        
+        <% if (plugins && plugins.length > 0) { %>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
+                <% plugins.forEach(plugin => { %>
+                    <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 1.5rem;">
+                        <div style="font-size: 2.5rem; margin-bottom: 1rem;">
+                            <%= plugin.icon || '🧩' %>
+                        </div>
+                        
+                        <h3><%= plugin.name %></h3>
+                        
+                        <% if (plugin.description) { %>
+                            <p style="color: #94a3b8; margin: 0.5rem 0;">
+                                <%= plugin.description %>
+                            </p>
+                        <% } %>
+                        
+                        <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                            <button style="padding: 0.5rem 1rem; background: #6366f1; color: white; border: none; border-radius: 6px; cursor: pointer;">
+                                Load Plugin
+                            </button>
+                            
+                            <% if (plugin.enabled) { %>
+                                <span style="background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 0.5rem 1rem; border-radius: 6px;">
+                                    Enabled
+                                </span>
+                            <% } else { %>
+                                <span style="background: rgba(239, 68, 68, 0.1); color: #ef4444; padding: 0.5rem 1rem; border-radius: 6px;">
+                                    Disabled
+                                </span>
+                            <% } %>
+                        </div>
+                    </div>
+                <% }) %>
+            </div>
+        <% } else { %>
+            <div style="text-align: center; padding: 4rem; color: #94a3b8;">
+                <div style="font-size: 4rem; margin-bottom: 1rem;">📦</div>
+                <h3>No Plugins Available</h3>
+                <p>Plugins will appear here when uploaded by admin.</p>
+                
+                <% if (user && user.role === 'admin') { %>
+                    <a href="/admin/plugins/upload" style="display: inline-block; margin-top: 1rem; padding: 0.75rem 1.5rem; background: #6366f1; color: white; text-decoration: none; border-radius: 8px;">
+                        Upload First Plugin
+                    </a>
+                <% } %>
+            </div>
+        <% } %>
+    </div>
+</body>
+</html>
