@@ -8,23 +8,24 @@
         
         <!-- Desktop Navigation -->
         <div class="nav-menu" id="navMenu">
-            <a href="/" class="nav-link <%= currentPage === 'home' ? 'active' : '' %>">
+            <!-- Use JavaScript to set active class -->
+            <a href="/" class="nav-link" id="nav-home">
                 🏠 Home
             </a>
-            <a href="/features" class="nav-link <%= currentPage === 'features' ? 'active' : '' %>">
+            <a href="/features" class="nav-link" id="nav-features">
                 ✨ Features
             </a>
-            <a href="/plugins" class="nav-link <%= currentPage === 'plugins' ? 'active' : '' %>">
+            <a href="/plugins" class="nav-link" id="nav-plugins">
                 🧩 Plugins
             </a>
             
-            <% if (user) { %>
-                <a href="/dashboard" class="nav-link <%= currentPage === 'dashboard' ? 'active' : '' %>">
+            <% if (locals.user) { %>
+                <a href="/dashboard" class="nav-link" id="nav-dashboard">
                     📊 Dashboard
                 </a>
                 
-                <% if (user.role === 'admin') { %>
-                    <a href="/admin" class="nav-link <%= currentPage === 'admin' ? 'active' : '' %>">
+                <% if (locals.user.role === 'admin') { %>
+                    <a href="/admin" class="nav-link" id="nav-admin">
                         ⚡ Admin
                     </a>
                 <% } %>
@@ -32,7 +33,7 @@
                 <!-- User Dropdown -->
                 <div class="dropdown">
                     <button class="btn btn-sm" style="display: flex; align-items: center; gap: 0.5rem;">
-                        <span>👤 <%= user.username || user.email.split('@')[0] %></span>
+                        <span>👤 <%= locals.user.username || locals.user.email.split('@')[0] %></span>
                         <span>▼</span>
                     </button>
                     <div class="dropdown-content">
@@ -44,7 +45,7 @@
                     </div>
                 </div>
             <% } else { %>
-                <a href="/auth/login" class="nav-link <%= currentPage === 'login' ? 'active' : '' %>">
+                <a href="/auth/login" class="nav-link" id="nav-login">
                     🔑 Login
                 </a>
                 <a href="/auth/signup" class="btn btn-sm btn-primary">
@@ -54,10 +55,10 @@
             
             <!-- Theme Switcher -->
             <div class="theme-switcher">
-                <button class="theme-btn <%= theme === 'dark' ? 'active' : '' %>" data-theme="dark" title="Dark"></button>
-                <button class="theme-btn <%= theme === 'light' ? 'active' : '' %>" data-theme="light" title="Light"></button>
-                <button class="theme-btn <%= theme === 'midnight' ? 'active' : '' %>" data-theme="midnight" title="Midnight"></button>
-                <button class="theme-btn <%= theme === 'ocean' ? 'active' : '' %>" data-theme="ocean" title="Ocean"></button>
+                <button class="theme-btn <%= locals.theme === 'dark' ? 'active' : '' %>" data-theme="dark" title="Dark"></button>
+                <button class="theme-btn <%= locals.theme === 'light' ? 'active' : '' %>" data-theme="light" title="Light"></button>
+                <button class="theme-btn <%= locals.theme === 'midnight' ? 'active' : '' %>" data-theme="midnight" title="Midnight"></button>
+                <button class="theme-btn <%= locals.theme === 'ocean' ? 'active' : '' %>" data-theme="ocean" title="Ocean"></button>
             </div>
         </div>
         
@@ -111,9 +112,52 @@
         background: var(--border);
         margin: 0.25rem 0;
     }
+    
+    .nav-link.active {
+        color: var(--primary);
+        background: rgba(99, 102, 241, 0.1);
+    }
 </style>
 
 <script>
+    // Set active nav link based on current URL
+    document.addEventListener('DOMContentLoaded', function() {
+        const currentPath = window.location.pathname;
+        
+        // Map paths to nav IDs
+        const navMap = {
+            '/': 'nav-home',
+            '/features': 'nav-features',
+            '/plugins': 'nav-plugins',
+            '/dashboard': 'nav-dashboard',
+            '/admin': 'nav-admin',
+            '/auth/login': 'nav-login',
+            '/auth/signup': 'nav-signup'
+        };
+        
+        // Find current nav ID
+        let currentNavId = null;
+        for (const [path, navId] of Object.entries(navMap)) {
+            if (currentPath === path || currentPath.startsWith(path + '/')) {
+                currentNavId = navId;
+                break;
+            }
+        }
+        
+        // If no exact match, check for admin pages
+        if (!currentNavId && currentPath.startsWith('/admin')) {
+            currentNavId = 'nav-admin';
+        }
+        
+        // Set active class
+        if (currentNavId) {
+            const activeNav = document.getElementById(currentNavId);
+            if (activeNav) {
+                activeNav.classList.add('active');
+            }
+        }
+    });
+    
     // Mobile menu toggle
     document.getElementById('hamburger')?.addEventListener('click', () => {
         const navMenu = document.getElementById('navMenu');
