@@ -70,18 +70,20 @@ router.post('/login', async (req, res) => {
 });
 
 // Signup
-router.get('/signup', (req, res) => {
-    if (req.session.user) {
-        return res.redirect('/dashboard');
-    }
-    res.render('auth/signup', { title: 'Sign Up', error: null });
-});
+// In routes/auth.js, update the signup POST route:
 
 router.post('/signup', async (req, res) => {
     try {
         const { email, username, password, confirmPassword } = req.body;
         
-        // Validate
+        // Validate inputs
+        if (!email || !username || !password) {
+            return res.render('auth/signup', {
+                title: 'Sign Up',
+                error: 'All fields are required'
+            });
+        }
+        
         if (password !== confirmPassword) {
             return res.render('auth/signup', {
                 title: 'Sign Up',
@@ -93,6 +95,14 @@ router.post('/signup', async (req, res) => {
             return res.render('auth/signup', {
                 title: 'Sign Up',
                 error: 'Password must be at least 6 characters'
+            });
+        }
+        
+        // Simple email validation
+        if (!email.includes('@') || !email.includes('.')) {
+            return res.render('auth/signup', {
+                title: 'Sign Up',
+                error: 'Please enter a valid email address'
             });
         }
         
@@ -108,9 +118,76 @@ router.post('/signup', async (req, res) => {
         if (existingUser) {
             return res.render('auth/signup', {
                 title: 'Sign Up',
-                error: 'Email already registered'
+                error: 'Email already registered. Please login instead.'
             });
         }
+        
+        // Hash password
+        const crypto = require('crypto');
+        const hashedPassword = crypto
+            .createHash('sha256')
+            .update(password + (process.env.PEPPER || 'default-pepper'))
+            .digest('hex');
+        
+        // Generate verification token
+        const verificationToken = crypto.randomBytes(32).toString('hex');
+        
+        // Create user
+        const user = await db.insert('users', {
+            email: email,
+            username: username,
+            password: hashedPassword,
+            role: 'user',
+            verified: false,
+            verificationToken: verificationToken,
+            verificationExpires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+            createdAt: new Date().toISOString()
+        });
+        
+        console.log(`✅ User created: ${email}, Token: ${verificationToken.substring(0, 10)}...`);
+        
+        // Send verification email
+        const emailResult = await emailService.sendVerificationEmail(
+            email, 
+            verificationToken, 
+            username
+        );
+        
+        // Store email in session for verification page
+        req.session.pendingVerification = {
+            email: email,
+            username: username,
+            token: verificationToken
+        };
+        
+        // Show appropriate message based on email result
+        if (emailResult.success) {
+            return res.render('auth/verify-pending', {
+                title: 'Verify Your Email',
+                email: email
+            });
+        } else {
+            // If email failed, show manual verification option
+            console.log('Email failed, showing manual verification:', emailResult);
+            
+            return res.render('auth/verify-manual', {
+                title: 'Manual Verification',
+                email: email,
+                verificationUrl: emailResult.fallbackUrl || 
+                    `${process.env.APP_URL || 'http://localhost:3000'}/auth/verify/${verificationToken}`,
+                error: emailResult.error
+            });
+        }
+        
+    } catch (error) {
+        console.error('Signup error:', error);
+        
+        return res.render('auth/signup', {
+            title: 'Sign Up',
+            error: 'Registration failed. Please try again.'
+        });
+    }
+});
         
         // Create user
         const user = await db.createUser({ email, username, password });
