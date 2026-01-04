@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title || 'Verify Email | ShadowCore' %></title>
+    <link rel="stylesheet" href="/static/css/main.css">
+    <style>
+        .verify-container {
+            max-width: 400px;
+            margin: 4rem auto;
+            padding: 2rem;
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+            text-align: center;
+        }
+        
+        .verify-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+        
+        .otp-container {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+            margin: 2rem 0;
+        }
+        
+        .otp-input {
+            width: 50px;
+            height: 50px;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            background: var(--glass);
+            border: 2px solid var(--glass-border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+        
+        .otp-input:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+        
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #fca5a5;
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-content">
+            <a href="/" class="logo">
+                🚀 <span>ShadowCore</span>
+            </a>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <div class="verify-container">
+            <div class="verify-icon">📧</div>
+            <h2>Verify Your Email</h2>
+            
+            <p style="color: var(--text-secondary); margin: 1rem 0;">
+                We've sent a verification code to: 
+                <strong><%= locals.email || 'your email' %></strong>
+            </p>
+            
+            <% if (locals.error) { %>
+                <div class="error-message">
+                    <%= locals.error %>
+                </div>
+            <% } %>
+            
+            <form method="POST" action="/auth/verify">
+                <div class="otp-container">
+                    <input type="text" name="otp1" class="otp-input" maxlength="1" required>
+                    <input type="text" name="otp2" class="otp-input" maxlength="1" required>
+                    <input type="text" name="otp3" class="otp-input" maxlength="1" required>
+                    <input type="text" name="otp4" class="otp-input" maxlength="1" required>
+                    <input type="text" name="otp5" class="otp-input" maxlength="1" required>
+                    <input type="text" name="otp6" class="otp-input" maxlength="1" required>
+                </div>
+                
+                <input type="hidden" name="otp" id="fullOtp">
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    Verify & Continue
+                </button>
+            </form>
+            
+            <div style="margin-top: 2rem; color: var(--text-muted); font-size: 0.9rem;">
+                <p>Didn't receive the code?</p>
+                <p>
+                    <a href="javascript:location.reload()" style="color: var(--primary);">
+                        Resend verification email
+                    </a>
+                </p>
+                <p style="margin-top: 1rem; font-style: italic;">
+                    Check your spam folder if you don't see it
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Combine OTP digits
+        const otpInputs = document.querySelectorAll('.otp-input');
+        const fullOtpInput = document.getElementById('fullOtp');
+        
+        otpInputs.forEach((input, index) => {
+            input.addEventListener('input', (e) => {
+                if (e.target.value.length === 1 && index < otpInputs.length - 1) {
+                    otpInputs[index + 1].focus();
+                }
+                
+                // Update hidden input
+                const otp = Array.from(otpInputs).map(i => i.value).join('');
+                fullOtpInput.value = otp;
+            });
+            
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                    otpInputs[index - 1].focus();
+                }
+            });
+        });
+        
+        // Auto-focus first input
+        otpInputs[0].focus();
+    </script>
+</body>
+</html>
