@@ -3,141 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>404 - Page Not Found | ShadowCore</title>
+    <title><%= title || '404 - Page Not Found' %></title>
     <link rel="stylesheet" href="/static/css/main.css">
     <style>
         .error-container {
-            min-height: 100vh;
+            text-align: center;
+            padding: 6rem 0;
+            min-height: 80vh;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 2rem;
-            text-align: center;
-        }
-        
-        .error-content {
-            max-width: 600px;
         }
         
         .error-code {
             font-size: 8rem;
             font-weight: 900;
-            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            background: linear-gradient(90deg, #6366f1, #8b5cf6);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 1rem;
+            margin: 0;
             line-height: 1;
         }
         
-        .error-title {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-            color: var(--text-primary);
-        }
-        
         .error-message {
-            font-size: 1.25rem;
+            font-size: 1.5rem;
             color: var(--text-secondary);
-            margin-bottom: 2rem;
-            line-height: 1.6;
+            margin: 1rem 0 2rem;
+            max-width: 500px;
         }
         
-        .error-actions {
+        .action-buttons {
             display: flex;
             gap: 1rem;
-            justify-content: center;
+            margin-top: 2rem;
             flex-wrap: wrap;
-        }
-        
-        .error-search {
-            max-width: 400px;
-            margin: 2rem auto;
-        }
-        
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-20px); }
-        }
-        
-        .error-icon {
-            font-size: 6rem;
-            margin-bottom: 2rem;
-            animation: float 3s ease-in-out infinite;
-            display: inline-block;
+            justify-content: center;
         }
     </style>
 </head>
 <body>
-    <%- include('../partials/header') %>
+    <!-- Simple header -->
+    <nav class="navbar" style="background: var(--bg-primary);">
+        <div class="nav-content">
+            <a href="/" class="logo">
+                🚀 <span>ShadowCore</span>
+            </a>
+            <a href="/" class="btn btn-sm btn-primary">Go Home</a>
+        </div>
+    </nav>
     
-    <div class="error-container">
-        <div class="error-content">
-            <div class="error-icon">🔍</div>
-            <div class="error-code">404</div>
-            <h1 class="error-title">Page Not Found</h1>
-            
+    <div class="container">
+        <div class="error-container">
+            <h1 class="error-code">404</h1>
+            <h2>Page Not Found</h2>
             <p class="error-message">
                 <%= message || "The page you're looking for doesn't exist or has been moved." %>
             </p>
             
-            <% if (suggestions && suggestions.length > 0) { %>
-                <div style="text-align: left; max-width: 400px; margin: 0 auto 2rem;">
-                    <p style="margin-bottom: 0.5rem; color: var(--text-primary);">You might be looking for:</p>
-                    <ul style="text-align: left; padding-left: 1.5rem;">
-                        <% suggestions.forEach(suggestion => { %>
-                            <li style="margin-bottom: 0.5rem;">
-                                <a href="<%= suggestion.url %>" style="color: var(--primary);">
-                                    <%= suggestion.name %>
-                                </a>
-                            </li>
-                        <% }) %>
-                    </ul>
-                </div>
-            <% } %>
-            
-            <div class="error-search">
-                <form action="/search" method="GET" style="display: flex; gap: 0.5rem;">
-                    <input type="text" name="q" placeholder="Search ShadowCore..." 
-                           class="form-control" style="flex: 1;">
-                    <button type="submit" class="btn btn-primary">
-                        Search
-                    </button>
-                </form>
-            </div>
-            
-            <div class="error-actions">
+            <div class="action-buttons">
                 <a href="/" class="btn btn-primary">
-                    🏠 Go to Homepage
+                    ← Back to Home
+                </a>
+                <a href="javascript:history.back()" class="btn btn-secondary">
+                    ← Go Back
+                </a>
+                <a href="/features" class="btn btn-secondary">
+                    ✨ View Features
                 </a>
                 <a href="/plugins" class="btn btn-secondary">
                     🧩 Browse Plugins
-                </a>
-                <a href="javascript:history.back()" class="btn btn-secondary">
-                    ↩️ Go Back
                 </a>
             </div>
             
             <div style="margin-top: 3rem; color: var(--text-muted); font-size: 0.9rem;">
                 <p>If you believe this is an error, please contact support.</p>
-                <p>Error ID: <code><%= new Date().getTime() %></code></p>
+                <p>👤 Owner: <%= process.env.OWNER_NAME || 'Abdullah' %></p>
+                <p>📞 Contact: <%= process.env.OWNER_NUMBER || '+923288055104' %></p>
             </div>
         </div>
     </div>
-    
-    <%- include('../partials/footer') %>
-    
-    <script>
-        // Auto-focus search input
-        document.querySelector('input[name="q"]')?.focus();
-        
-        // Log 404 error for analytics
-        if (typeof gtag !== 'undefined') {
-            gtag('event', 'page_view', {
-                page_title: '404 Page',
-                page_location: window.location.href
-            });
-        }
-    </script>
 </body>
 </html>
