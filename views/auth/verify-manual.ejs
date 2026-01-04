@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title || 'Manual Verification | ShadowCore' %></title>
+    <link rel="stylesheet" href="/static/css/main.css">
+</head>
+<body>
+    <%- include('../partials/header', { currentPage: 'verify' }) %>
+    
+    <div class="container" style="text-align: center; padding: 4rem 0;">
+        <div style="max-width: 600px; margin: 0 auto;">
+            <div style="font-size: 4rem; margin-bottom: 1rem;">🔧</div>
+            <h1>Manual Verification Required</h1>
+            
+            <% if (error) { %>
+                <div style="background: rgba(239, 68, 68, 0.1); color: #ef4444; padding: 1rem; border-radius: 8px; margin: 1rem 0;">
+                    <p><strong>Email Error:</strong> <%= error %></p>
+                </div>
+            <% } %>
+            
+            <p style="color: var(--text-secondary); margin: 1rem 0;">
+                We couldn't send the verification email automatically, but you can still verify your account manually.
+            </p>
+            
+            <div style="background: var(--bg-card); border-radius: 12px; padding: 2rem; margin: 2rem 0; text-align: left;">
+                <h3>📋 Manual Verification Steps</h3>
+                
+                <p><strong>Step 1:</strong> Copy this verification link:</p>
+                <div style="background: rgba(0,0,0,0.1); padding: 1rem; border-radius: 8px; margin: 1rem 0; word-break: break-all;">
+                    <code style="font-size: 0.9rem;"><%= verificationUrl %></code>
+                </div>
+                
+                <p><strong>Step 2:</strong> Paste it into your browser's address bar</p>
+                <p><strong>Step 3:</strong> Press Enter to verify your account</p>
+                
+                <div style="margin-top: 1.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                    <button onclick="copyVerificationLink()" class="btn btn-primary">
+                        📋 Copy Verification Link
+                    </button>
+                    <a href="<%= verificationUrl %>" class="btn btn-secondary" target="_blank">
+                        🔗 Open Link Directly
+                    </a>
+                </div>
+            </div>
+            
+            <p style="color: var(--text-muted); margin-top: 1rem;">
+                Email: <strong><%= email %></strong><br>
+                After verification, you can <a href="/auth/login">login here</a>.
+            </p>
+        </div>
+    </div>
+    
+    <script>
+        function copyVerificationLink() {
+            const link = '<%= verificationUrl %>';
+            navigator.clipboard.writeText(link).then(() => {
+                if (typeof showNotification !== 'undefined') {
+                    showNotification('success', 'Verification link copied to clipboard!');
+                } else {
+                    alert('Verification link copied to clipboard!');
+                }
+            });
+        }
+        
+        // Auto-copy on page load for convenience
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                const shouldAutoCopy = confirm('Copy verification link to clipboard automatically?');
+                if (shouldAutoCopy) {
+                    copyVerificationLink();
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
