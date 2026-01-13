@@ -1,0 +1,42 @@
+/* Light Theme */
+body.light {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  color: #333;
+}
+
+body.light .card {
+  background: rgba(255, 255, 255, 0.9);
+  color: #333;
+}
+
+body.light input {
+  background: rgba(255, 255, 255, 0.9);
+  color: #333;
+}
+
+/* Dark Theme (Default) */
+body.dark {
+  background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+  color: #fff;
+}
+
+.theme-toggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: linear-gradient(45deg, #ff69b4, #00ced1);
+  color: white;
+  border: none;
+  padding: 15px;
+  cursor: pointer;
+  border-radius: 50%;
+  font-size: 1.5em;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  transition: all 0.3s;
+  z-index: 20;
+}
+
+.theme-toggle:hover {
+  transform: scale(1.2);
+  box-shadow: 0 10px 30px rgba(255, 105, 180, 0.6);
+}
