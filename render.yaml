@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: shadowcore
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: PORT
+        value: 3000
+      - key: DATABASE_URL
+        value: sqlite:./database/shadowcore.db
+      - key: SESSION_SECRET
+        value: your-random-secret-here
+      - key: GMAIL_USER
+        value: yourgmail@gmail.com
+      - key: GMAIL_PASS
+        value: 
+      - key: ADMIN_PASSWORD
+        value: Ran@0986
+      - key: REMOVE_BG_API_KEY
+        value: xv5aoeuirxTNZBYS5KykZZEK
+      - key: SITE_NAME
+        value: Shadowcore
+      - key: OWNER_NAME
+        value: Abdullah
+      - key: CONTACT_NUMBER
+        value: +923288055104
+      - key: SUPPORT_EMAIL
+        value: ranaabdullah0886@gmail.com
