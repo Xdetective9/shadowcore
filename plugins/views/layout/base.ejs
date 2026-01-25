@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="<%= locals.theme || 'dark' %>">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= locals.title || 'ShadowCore' %> | <%= locals.appName || 'Modular Platform' %></title>
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="stylesheet" href="/static/css/themes.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Plugin Styles -->
+    <% if (locals.plugins) { %>
+        <% locals.plugins.forEach(plugin => { %>
+            <% if (plugin.frontend && plugin.frontend.css) { %>
+                <style><%= plugin.frontend.css %></style>
+            <% } %>
+        <% }) %>
+    <% } %>
+    
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #8b5cf6;
+            --accent: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            --dark: #0f172a;
+            --darker: #020617;
+            --light: #f8fafc;
+            --gray: #94a3b8;
+            --gray-dark: #475569;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --radius: 12px;
+            --radius-lg: 20px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        [data-theme="light"] {
+            --dark: #f1f5f9;
+            --darker: #e2e8f0;
+            --light: #0f172a;
+            --glass: rgba(15, 23, 42, 0.05);
+            --glass-border: rgba(15, 23, 42, 0.1);
+        }
+    </style>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/static/assets/favicon.ico">
+</head>
+<body class="theme-<%= locals.theme || 'dark' %>">
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <a href="/" class="logo">
+                    <i class="fas fa-cube"></i>
+                    <span><%= locals.appName || 'ShadowCore' %></span>
+                </a>
+                <button class="theme-toggle" id="themeToggle">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+            
+            <div class="nav-menu" id="navMenu">
+                <a href="/" class="nav-link <%= currentPage === 'home' ? 'active' : '' %>">
+                    <i class="fas fa-home"></i> Home
+                </a>
+                <a href="/features" class="nav-link <%= currentPage === 'features' ? 'active' : '' %>">
+                    <i class="fas fa-star"></i> Features
+                </a>
+                <a href="/plugins" class="nav-link <%= currentPage === 'plugins' ? 'active' : '' %>">
+                    <i class="fas fa-puzzle-piece"></i> Plugins
+                </a>
+                
+                <% if (locals.user) { %>
+                    <a href="/dashboard" class="nav-link <%= currentPage === 'dashboard' ? 'active' : '' %>">
+                        <i class="fas fa-dashboard"></i> Dashboard
+                    </a>
+                    
+                    <% if (locals.user.role === 'admin') { %>
+                        <a href="/admin" class="nav-link <%= currentPage === 'admin' ? 'active' : '' %>">
+                            <i class="fas fa-crown"></i> Admin
+                        </a>
+                    <% } %>
+                    
+                    <div class="dropdown">
+                        <button class="nav-link dropdown-toggle">
+                            <i class="fas fa-user"></i> <%= locals.user.username %>
+                        </button>
+                        <div class="dropdown-menu">
+                            <a href="/profile" class="dropdown-item">
+                                <i class="fas fa-user-circle"></i> Profile
+                            </a>
+                            <a href="/settings" class="dropdown-item">
+                                <i class="fas fa-cog"></i> Settings
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <a href="/auth/logout" class="dropdown-item text-danger">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </a>
+                        </div>
+                    </div>
+                <% } else { %>
+                    <a href="/auth/login" class="nav-link <%= currentPage === 'login' ? 'active' : '' %>">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </a>
+                    <a href="/auth/signup" class="btn btn-primary btn-sm">
+                        <i class="fas fa-user-plus"></i> Sign Up
+                    </a>
+                <% } %>
+            </div>
+            
+            <button class="nav-toggle" id="navToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <%- body %>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <h3><i class="fas fa-cube"></i> <%= locals.appName || 'ShadowCore' %></h3>
+                    <p>Advanced Modular Platform</p>
+                </div>
+                
+                <div class="footer-links">
+                    <a href="/about">About</a>
+                    <a href="/features">Features</a>
+                    <a href="/plugins">Plugins</a>
+                    <a href="/docs">Documentation</a>
+                    <a href="/contact">Contact</a>
+                </div>
+                
+                <div class="footer-info">
+                    <p><i class="fas fa-user"></i> Owner: <%= locals.ownerName || 'Abdullah' %></p>
+                    <p><i class="fas fa-phone"></i> Contact: <%= locals.ownerContact || '+923288055104' %></p>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; <%= new Date().getFullYear() %> ShadowCore. All rights reserved.</p>
+                <p class="special-message">
+                    ⎯ʏᴏᴜ ᴀʀᴇ ᴍʏ ʙᴇsᴛ ғʀɪᴇɴᴅ, ᴍʏ ʜᴜᴍᴀɴ ᴅɪᴀʀʏ, ᴀɴᴅ ᴍʏ ᴏᴛʜᴇʀ ʜᴀʟғ𓄹ꠂ🫶🏻🐣🌷♡゙𓂃
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Notification Container -->
+    <div id="notification-container"></div>
+
+    <!-- Scripts -->
+    <script src="/static/js/main.js"></script>
+    <script src="/static/js/plugins.js"></script>
+    
+    <!-- Plugin Scripts -->
+    <% if (locals.plugins) { %>
+        <% locals.plugins.forEach(plugin => { %>
+            <% if (plugin.frontend && plugin.frontend.js) { %>
+                <script><%= plugin.frontend.js %></script>
+            <% } %>
+        <% }) %>
+    <% } %>
+    
+    <!-- Socket.IO -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script>
+        const socket = io();
+        
+        socket.on('connect', () => {
+            console.log('Connected to server');
+        });
+        
+        socket.on('notification', (data) => {
+            showNotification(data.type, data.message);
+        });
+        
+        // Theme toggle
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            document.documentElement.setAttribute('data-theme', newTheme);
+            document.body.className = \`theme-\${newTheme}\`;
+            
+            // Save to cookie
+            document.cookie = \`theme=\${newTheme}; path=/; max-age=31536000\`;
+            
+            // Update icon
+            const icon = document.querySelector('#themeToggle i');
+            icon.className = newTheme === 'dark' ? 'fas fa-moon' : 'fas fa-sun';
+        });
+        
+        // Mobile menu toggle
+        document.getElementById('navToggle').addEventListener('click', () => {
+            document.getElementById('navMenu').classList.toggle('active');
+        });
+    </script>
+</body>
+</html>
