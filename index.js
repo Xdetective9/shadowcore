@@ -211,6 +211,8 @@ io.on('connection', (socket) => {
     });
 });
 
+// Replace the server listening section at the bottom of index
+
 // ========== START SERVER ==========
 async function startServer() {
     try {
@@ -232,7 +234,7 @@ async function startServer() {
         await loadRoutes();
         console.log(chalk.green('✓ Main routes loaded'));
         
-        // Start server
+        // Start server - CRITICAL FOR RENDER
         server.listen(PORT, HOST, () => {
             console.log(`
 ${chalk.magenta.bold('╔══════════════════════════════════════════════════════════╗')}
@@ -273,4 +275,5 @@ process.on('unhandledRejection', (reason, promise) => {
 // Start the server
 startServer();
 
+// Export for testing
 module.exports = { app, server, io };
