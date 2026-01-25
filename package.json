@@ -8,6 +8,7 @@
     "dev": "nodemon index.js",
     "setup": "node utils/database.js",
     "deploy": "npm run setup && npm start",
+    "render-start": "PORT=$PORT node index.js",
     "build:css": "postcss public/css/main.css -o public/css/main.min.css"
   },
   "dependencies": {
